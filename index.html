@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevStudy: Python & Flutter</title>
+    <title>DevStudy Pro: Python & Flutter Master</title>
     <!-- React & Tailwind & Babel CDN -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -30,17 +30,20 @@
         body { font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .code-font { font-family: 'Courier New', Courier, monospace; }
-        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .code-font { font-family: 'Consolas', 'Monaco', monospace; }
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-top: 1px solid rgba(0, 0, 0, 0.05); }
+        .lesson-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .lesson-card:active { transform: scale(0.98); }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .animate-slide { animation: slideIn 0.4s ease-out forwards; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
-        // 로또 앱에서 사용하신 설정 그대로 유지
         const firebaseConfig = {
             apiKey: "AIzaSyDgx9NCQiQn1dRm6fecK__pAoVFYN2d2q8",
             authDomain: "angellas.firebaseapp.com",
@@ -50,30 +53,134 @@
             appId: "1:520824812438:web:182fd3231b94b9c58ce3b7"
         };
 
-        const studyAppId = "angellas-dev-study-app";
+        const studyAppId = "angellas-dev-study-pro-v2";
+        const apiKey = ""; // Gemini API Key (제공된 환경에서 자동 주입)
 
         const STUDY_CONTENT = {
             python: [
-                { id: 'p1', title: '변수와 자료형', content: 'Python에서 변수는 선언 없이 바로 사용합니다.\n예: x = 10, name = "Alice"', code: 'x = 10\nprint(type(x)) # <class \'int\'>' },
-                { id: 'p2', title: '리스트와 딕셔너리', content: '데이터 꾸러미입니다. []는 리스트, {}는 딕셔너리.', code: 'fruits = ["apple", "banana"]\nuser = {"name": "Alice", "age": 25}' },
-                { id: 'p3', title: '조건문과 반복문', content: 'if문과 for/while문으로 흐름을 제어합니다. 들여쓰기가 매우 중요합니다.', code: 'for i in range(5):\n    if i % 2 == 0:\n        print(i)' }
+                { 
+                    id: 'p1', 
+                    title: '변수와 기초 연산', 
+                    content: 'Python에서 변수는 별도의 선언 없이 값을 할당하여 만듭니다. 숫자는 int, 실수는 float, 문자는 str 타입을 가집니다.', 
+                    examples: [
+                        '# 정수와 실수 할당\nage = 25\nheight = 175.5\n\n# 문자열 포맷팅\nname = "Alice"\nprint(f"{name}은 {age}살입니다.")',
+                        '# 거듭제곱 연산자\na = 2 ** 3  # 8\nb = 7 // 2  # 3 (몫만 반환)'
+                    ],
+                    quiz: {
+                        q: "7을 3으로 나눈 '몫'만 구하는 연산자는 무엇일까요?",
+                        options: ["/", "//", "%", "**"],
+                        ans: 1,
+                        expl: "// 연산자는 나눗셈 후 소수점 이하를 버리고 몫만 반환합니다."
+                    }
+                },
+                { 
+                    id: 'p2', 
+                    title: '리스트 마스터하기', 
+                    content: '리스트는 여러 값을 순서대로 저장하는 바구니입니다. 인덱스는 0부터 시작하며 슬라이싱 기능을 지원합니다.', 
+                    examples: [
+                        'fruits = ["사과", "배", "포도"]\nprint(fruits[0]) # "사과"\n\n# 값 추가 및 삭제\nfruits.append("딸기")\nfruits.remove("배")',
+                        'nums = [0, 1, 2, 3, 4, 5]\nprint(nums[1:4]) # [1, 2, 3] 추출'
+                    ],
+                    quiz: {
+                        q: "리스트의 가장 마지막에 요소를 추가하는 함수는?",
+                        options: ["insert()", "add()", "append()", "push()"],
+                        ans: 2,
+                        expl: "append() 메서드는 리스트의 끝에 새로운 요소를 추가합니다."
+                    }
+                },
+                { 
+                    id: 'p3', 
+                    title: '딕셔너리와 세트', 
+                    content: '딕셔너리는 {Key: Value} 쌍으로 데이터를 관리합니다. 세트는 중복을 허용하지 않는 주머니입니다.', 
+                    examples: [
+                        'user = {"id": "dev123", "name": "철수"}\nprint(user["id"]) # "dev123"',
+                        'unique_nums = {1, 2, 2, 3} \nprint(unique_nums) # {1, 2, 3}'
+                    ],
+                    quiz: {
+                        q: "딕셔너리에서 모든 키(Key)만 가져오는 함수는?",
+                        options: ["keys()", "values()", "items()", "all()"],
+                        ans: 0,
+                        expl: "keys() 메서드는 딕셔너리의 모든 키를 모아 반환합니다."
+                    }
+                },
+                { 
+                    id: 'p4', 
+                    title: '조건문과 논리 구조', 
+                    content: 'if, elif, else를 사용해 로직을 분기합니다. 파이썬은 들여쓰기가 코드 블록을 결정하므로 매우 중요합니다.', 
+                    examples: [
+                        'score = 85\nif score >= 90:\n    print("A학점")\nelif score >= 80:\n    print("B학점")\nelse:\n    print("재수강")',
+                        'is_admin = True\nis_active = False\nif is_admin and not is_active:\n    print("활성화가 필요합니다.")'
+                    ],
+                    quiz: {
+                        q: "여러 조건 중 하나만 참이어도 참이 되는 논리 연산자는?",
+                        options: ["and", "or", "not", "&&"],
+                        ans: 1,
+                        expl: "or 연산자는 하나 이상의 피연산자가 True이면 True를 반환합니다."
+                    }
+                }
             ],
             flutter: [
-                { id: 'f1', title: '모든 것은 위젯', content: 'Flutter UI는 위젯들의 조합입니다. MaterialApp, Scaffold가 기본입니다.', code: 'Scaffold(\n  appBar: AppBar(title: Text("Hello")),\n  body: Center(child: Text("World")),\n)' },
-                { id: 'f2', title: 'Stateless vs Stateful', content: '변하지 않는 화면은 Stateless, 데이터에 따라 바뀌면 Stateful 위젯을 씁니다.', code: 'class MyWidget extends StatelessWidget {\n  @override\n  Widget build(BuildContext context) { ... }\n}' },
-                { id: 'f3', title: 'Layout 위젯', content: 'Row는 가로, Column은 세로로 위젯을 배치합니다.', code: 'Column(\n  children: [\n    Text("Top"),\n    Text("Bottom"),\n  ],\n)' }
+                { 
+                    id: 'f1', 
+                    title: 'Flutter의 기본 구조', 
+                    content: 'Flutter 앱은 위젯(Widget)의 트리 구조로 이루어져 있습니다. 모든 UI 요소는 위젯입니다.', 
+                    examples: [
+                        'import "package:flutter/material.dart";\n\nvoid main() => runApp(MaterialApp(\n  home: Scaffold(body: Center(child: Text("Hello World"))),\n));',
+                        'Scaffold(\n  appBar: AppBar(title: Text("내 앱")),\n  floatingActionButton: FloatingActionButton(onPressed: () {}),\n)'
+                    ],
+                    quiz: {
+                        q: "Flutter 앱의 뼈대 역할을 하는 기본 위젯은?",
+                        options: ["Container", "Scaffold", "Column", "Row"],
+                        ans: 1,
+                        expl: "Scaffold는 상단바, 하단바 등 기본 레이아웃 구조를 제공합니다."
+                    }
+                },
+                { 
+                    id: 'f2', 
+                    title: 'Stateless vs Stateful', 
+                    content: '화면 내용이 변하지 않으면 StatelessWidget, 데이터에 따라 바뀌면 StatefulWidget을 사용합니다.', 
+                    examples: [
+                        '// 변하지 않는 화면\nclass MyText extends StatelessWidget {\n  @override\n  Widget build(context) => Text("안녕");\n}',
+                        '// 상태가 있는 화면\nsetState(() {\n  counter++; // 화면 갱신 트리거\n});'
+                    ],
+                    quiz: {
+                        q: "StatefulWidget에서 화면을 다시 그리도록 명령하는 함수는?",
+                        options: ["refresh()", "update()", "setState()", "rebuild()"],
+                        ans: 2,
+                        expl: "setState()를 호출하면 Flutter 엔진이 변경 사항을 감지하고 UI를 재빌드합니다."
+                    }
+                },
+                { 
+                    id: 'f3', 
+                    title: 'Layout 위젯: 가로와 세로', 
+                    content: '위젯을 배치할 때 Column(세로)과 Row(가로)를 가장 많이 사용합니다. 자식들은 children 리스트에 담습니다.', 
+                    examples: [
+                        'Column(\n  mainAxisAlignment: MainAxisAlignment.center,\n  children: [\n    Text("첫째"),\n    Icon(Icons.star),\n  ],\n)',
+                        'Row(\n  children: [\n    Expanded(child: Container(color: Colors.red)),\n    Expanded(child: Container(color: Colors.blue)),\n  ],\n)'
+                    ],
+                    quiz: {
+                        q: "자식 위젯을 남는 공간만큼 꽉 채우게 만드는 위젯은?",
+                        options: ["Container", "SizedBox", "Expanded", "Padding"],
+                        ans: 2,
+                        expl: "Expanded는 부모 위젯(Row/Column)의 빈 공간을 차지하도록 확장합니다."
+                    }
+                }
             ]
         };
 
         const App = () => {
             const [user, setUser] = useState(null);
-            const [activeSubject, setActiveSubject] = useState('python'); // 'python' or 'flutter'
-            const [view, setView] = useState('home'); // 'home', 'learn', 'notes'
-            const [selectedLesson, setSelectedLesson] = useState(null);
+            const [activeSubject, setActiveSubject] = useState('python');
+            const [view, setView] = useState('home'); // home, learn, notes, gemini
+            const [page, setPage] = useState(0);
             const [savedNotes, setSavedNotes] = useState([]);
             const [isLoaded, setIsLoaded] = useState(false);
+            const [chatMessages, setChatMessages] = useState([]);
+            const [userInput, setUserInput] = useState("");
+            const [isTyping, setIsTyping] = useState(false);
+            const chatEndRef = useRef(null);
 
-            // Firebase 인증
+            // Firebase 초기화
             useEffect(() => {
                 const init = async () => {
                     const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged } = window.FirebaseSDK;
@@ -86,154 +193,289 @@
                 return () => clearInterval(timer);
             }, []);
 
-            // 클라우드 노트 실시간 동기화
+            // 노트 실시간 동기화
             useEffect(() => {
                 if (!user) return;
                 const { getFirestore, collection, query, onSnapshot, initializeApp } = window.FirebaseSDK;
                 const db = getFirestore(initializeApp(firebaseConfig));
-                
-                const q = query(collection(db, 'artifacts', studyAppId, 'users', user.uid, 'studyNotes'));
-                const unsub = onSnapshot(q, (s) => {
-                    setSavedNotes(s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => b.createdAt - a.createdAt));
-                });
+                const q = query(collection(db, 'artifacts', studyAppId, 'users', user.uid, 'notes'));
+                const unsub = onSnapshot(q, (s) => setSavedNotes(s.docs.map(d => ({ id: d.id, ...d.data() }))));
                 return () => unsub();
             }, [user]);
 
-            // 노트 저장 기능
-            const saveNote = async (lesson) => {
+            useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
+
+            const saveToCloud = async (lesson) => {
                 const { getFirestore, collection, addDoc, initializeApp } = window.FirebaseSDK;
                 const db = getFirestore(initializeApp(firebaseConfig));
-                try {
-                    await addDoc(collection(db, 'artifacts', studyAppId, 'users', user.uid, 'studyNotes'), {
-                        subject: activeSubject,
-                        title: lesson.title,
-                        content: lesson.content,
-                        code: lesson.code,
-                        createdAt: Date.now()
-                    });
-                    alert("학습 노트에 저장되었습니다!");
-                } catch (e) { alert("저장 실패"); }
+                await addDoc(collection(db, 'artifacts', studyAppId, 'users', user.uid, 'notes'), {
+                    ...lesson, subject: activeSubject, createdAt: Date.now()
+                });
+                alert("나의 학습 저장소에 보관되었습니다!");
             };
 
-            const deleteNote = async (id) => {
-                const { getFirestore, doc, deleteDoc, initializeApp } = window.FirebaseSDK;
-                const db = getFirestore(initializeApp(firebaseConfig));
-                await deleteDoc(doc(db, 'artifacts', studyAppId, 'users', user.uid, 'studyNotes', id));
+            const callGemini = async (query) => {
+                setIsTyping(true);
+                setChatMessages(prev => [...prev, { role: 'user', text: query }]);
+                setUserInput("");
+
+                const systemPrompt = `You are a professional coding tutor for Python and Flutter. 
+                Explain in Korean clearly with examples. Current learning context: ${activeSubject}. 
+                Be friendly and encourage the student.`;
+
+                let delay = 1000;
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: query }] }],
+                                systemInstruction: { parts: [{ text: systemPrompt }] }
+                            })
+                        });
+                        const data = await response.json();
+                        const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || "죄송합니다. 답변을 생성할 수 없습니다.";
+                        setChatMessages(prev => [...prev, { role: 'bot', text: answer }]);
+                        setIsTyping(false);
+                        return;
+                    } catch (e) {
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                    }
+                }
+                setChatMessages(prev => [...prev, { role: 'bot', text: "연결 오류가 발생했습니다. 나중에 다시 시도해주세요." }]);
+                setIsTyping(false);
             };
 
-            if (!isLoaded) return <div className="min-h-screen flex items-center justify-center text-slate-400 font-black animate-pulse">DEV STUDY LOADING...</div>;
+            const lessonsPerPage = 3;
+            const currentLessons = STUDY_CONTENT[activeSubject].slice(page * lessonsPerPage, (page + 1) * lessonsPerPage);
+
+            if (!isLoaded) return (
+                <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
+                    <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+                    <p className="font-black tracking-[0.2em]">DEVSTUDY PRO BOOTING...</p>
+                </div>
+            );
 
             return (
-                <div className="max-w-md mx-auto min-h-screen flex flex-col pb-20">
-                    {/* 상단 헤더 */}
-                    <header className="p-6 pt-10 flex justify-between items-end">
+                <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pb-24 relative overflow-x-hidden">
+                    {/* 상단 탭 스테이키 헤더 */}
+                    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 p-6 flex justify-between items-center">
                         <div>
-                            <h1 className="text-3xl font-black text-slate-800 tracking-tighter">DevStudy Pro</h1>
-                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Smart Learning System</p>
+                            <h1 className="text-2xl font-black text-slate-800 tracking-tighter">DevStudy Pro</h1>
+                            <div className="flex gap-2 mt-2">
+                                <button onClick={() => {setActiveSubject('python'); setPage(0);}} className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${activeSubject === 'python' ? 'bg-yellow-400 text-slate-900 shadow-lg scale-105' : 'bg-slate-100 text-slate-400'}`}>PYTHON</button>
+                                <button onClick={() => {setActiveSubject('flutter'); setPage(0);}} className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${activeSubject === 'flutter' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-slate-100 text-slate-400'}`}>FLUTTER</button>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={() => setActiveSubject('python')} className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all ${activeSubject === 'python' ? 'bg-yellow-400 text-slate-900 shadow-md' : 'bg-white text-slate-400'}`}>PYTHON</button>
-                            <button onClick={() => setActiveSubject('flutter')} className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all ${activeSubject === 'flutter' ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-slate-400'}`}>FLUTTER</button>
-                        </div>
+                        <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black text-xs">A</div>
                     </header>
 
-                    {/* 메인 콘텐츠 영역 */}
-                    <main className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+                    <main className="flex-1 p-5 overflow-x-hidden">
                         {view === 'home' && (
-                            <div className="space-y-6 animate-in fade-in duration-500">
-                                <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-2xl relative overflow-hidden">
-                                    <i className="lucide-zap absolute -right-4 -bottom-4 w-32 h-32 opacity-10"></i>
-                                    <h2 className="text-xl font-black mb-2">오늘의 학습 도전</h2>
-                                    <p className="text-slate-400 text-sm leading-relaxed mb-6">자투리 시간을 활용해 {activeSubject === 'python' ? '파이썬' : '플러터'} 마스터가 되어보세요.</p>
-                                    <button onClick={() => setView('learn')} className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-sm shadow-xl active:scale-95 transition-all">학습 시작하기</button>
+                            <div className="space-y-6 animate-slide">
+                                <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl relative overflow-hidden">
+                                    <div className="relative z-10">
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Today's Goal</span>
+                                        <h2 className="text-2xl font-black mt-1 leading-tight">지능형 {activeSubject === 'python' ? '파이썬' : '플러터'} 코칭 시작</h2>
+                                        <p className="text-indigo-100 text-xs mt-3 leading-relaxed">자투리 시간에 배우는 고효율 커리큘럼으로 전문가의 길로 안내합니다.</p>
+                                        <button onClick={() => setView('learn')} className="mt-8 px-8 py-3.5 bg-white text-indigo-600 rounded-2xl font-black text-sm shadow-xl active:scale-95 transition-all">강의실 입장</button>
+                                    </div>
+                                    <i className="lucide-sparkles absolute -right-4 -bottom-4 w-32 h-32 opacity-20 rotate-12"></i>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
-                                        <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-3">
-                                            <i className="lucide-book-open w-6 h-6"></i>
+                                    <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center">
+                                        <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-3">
+                                            <i className="lucide-check-circle w-6 h-6"></i>
                                         </div>
-                                        <span className="text-xs font-black text-slate-400 uppercase">Lesson Count</span>
-                                        <span className="text-xl font-black text-slate-800">{STUDY_CONTENT[activeSubject].length}</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase">진도율</span>
+                                        <span className="text-xl font-black text-slate-800">42%</span>
                                     </div>
-                                    <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                                    <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center">
                                         <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mb-3">
-                                            <i className="lucide-star w-6 h-6"></i>
+                                            <i className="lucide-heart w-6 h-6"></i>
                                         </div>
-                                        <span className="text-xs font-black text-slate-400 uppercase">Saved Notes</span>
-                                        <span className="text-xl font-black text-slate-800">{savedNotes.filter(n => n.subject === activeSubject).length}</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase">보관됨</span>
+                                        <span className="text-xl font-black text-slate-800">{savedNotes.length}</span>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         {view === 'learn' && (
-                            <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <button onClick={() => setView('home')} className="p-2 bg-white rounded-xl shadow-sm"><i className="lucide-chevron-left w-5 h-5"></i></button>
-                                    <h2 className="font-black text-slate-800 uppercase tracking-tight">{activeSubject} 기초 강의</h2>
+                            <div className="space-y-6 animate-slide">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h2 className="text-lg font-black text-slate-800 uppercase tracking-tighter flex items-center gap-2">
+                                        <i className="lucide-book-open text-indigo-600 w-5 h-5"></i> {activeSubject} Essential
+                                    </h2>
+                                    <span className="text-[10px] font-black text-slate-400">Page {page + 1}</span>
                                 </div>
-                                {STUDY_CONTENT[activeSubject].map((lesson) => (
-                                    <div key={lesson.id} className="p-6 bg-white rounded-[2rem] shadow-sm border border-slate-100 space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <h3 className="font-black text-slate-800">{lesson.title}</h3>
-                                            <button onClick={() => saveNote(lesson)} className="p-2 text-slate-300 hover:text-indigo-500 transition-colors"><i className="lucide-bookmark w-5 h-5"></i></button>
+
+                                {currentLessons.map(lesson => (
+                                    <div key={lesson.id} className="lesson-card bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 space-y-4">
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="text-md font-black text-slate-800 leading-tight">{lesson.title}</h3>
+                                            <button onClick={() => saveToCloud(lesson)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors">
+                                                <i className="lucide-bookmark w-5 h-5"></i>
+                                            </button>
                                         </div>
-                                        <p className="text-slate-500 text-sm leading-relaxed">{lesson.content}</p>
-                                        <div className="p-4 bg-slate-900 rounded-2xl">
-                                            <pre className="code-font text-[11px] text-green-400 overflow-x-auto"><code>{lesson.code}</code></pre>
+                                        <p className="text-slate-500 text-xs leading-relaxed">{lesson.content}</p>
+                                        <div className="space-y-2">
+                                            {lesson.examples.map((ex, i) => (
+                                                <div key={i} className="p-4 bg-slate-900 rounded-2xl group relative">
+                                                    <pre className="code-font text-[10px] text-indigo-300 leading-relaxed overflow-x-auto"><code>{ex}</code></pre>
+                                                    <span className="absolute top-2 right-3 text-[8px] text-slate-600 font-bold uppercase tracking-widest">Example {i+1}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {/* 미니 퀴즈 섹션 */}
+                                        <div className="mt-4 pt-4 border-t border-slate-50">
+                                            <p className="text-[10px] font-black text-indigo-600 uppercase mb-3 flex items-center gap-1">
+                                                <i className="lucide-help-circle w-3 h-3"></i> Quick Quiz
+                                            </p>
+                                            <p className="text-xs font-bold text-slate-700 mb-3">{lesson.quiz.q}</p>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {lesson.quiz.options.map((opt, oi) => (
+                                                    <button 
+                                                        key={oi} 
+                                                        onClick={() => alert(oi === lesson.quiz.ans ? `정답! \n${lesson.quiz.expl}` : "틀렸습니다. 다시 생각해보세요!")}
+                                                        className="py-2.5 px-3 bg-slate-50 hover:bg-indigo-50 rounded-xl text-[10px] font-bold text-slate-500 hover:text-indigo-600 transition-all border border-transparent hover:border-indigo-100"
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
+
+                                {/* 페이지 네비게이션 */}
+                                <div className="flex justify-between items-center pt-4">
+                                    <button 
+                                        disabled={page === 0} 
+                                        onClick={() => setPage(p => p - 1)}
+                                        className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 disabled:opacity-30"
+                                    >
+                                        <i className="lucide-chevron-left w-6 h-6"></i>
+                                    </button>
+                                    <div className="flex gap-2">
+                                        {Array.from({length: Math.ceil(STUDY_CONTENT[activeSubject].length / lessonsPerPage)}).map((_, i) => (
+                                            <div key={i} className={`w-2 h-2 rounded-full transition-all ${page === i ? 'w-6 bg-indigo-600' : 'bg-slate-200'}`}></div>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        disabled={(page + 1) * lessonsPerPage >= STUDY_CONTENT[activeSubject].length} 
+                                        onClick={() => setPage(p => p + 1)}
+                                        className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 disabled:opacity-30"
+                                    >
+                                        <i className="lucide-chevron-right w-6 h-6"></i>
+                                    </button>
+                                </div>
                             </div>
                         )}
 
                         {view === 'notes' && (
-                            <div className="space-y-4 animate-in fade-in duration-500">
-                                <h2 className="font-black text-slate-800 uppercase tracking-tight mb-4 flex items-center gap-2">
-                                    <i className="lucide-folder-heart text-rose-500 w-5 h-5"></i> 나의 학습 저장소
+                            <div className="space-y-4 animate-slide">
+                                <h2 className="text-lg font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2">
+                                    <i className="lucide-folder-heart text-rose-500 w-5 h-5"></i> My Repository
                                 </h2>
-                                {savedNotes.length > 0 ? savedNotes.map((note) => (
-                                    <div key={note.id} className="p-5 bg-white rounded-3xl shadow-sm border border-slate-100 space-y-3 relative overflow-hidden group">
-                                        <div className={`absolute top-0 left-0 w-1.5 h-full ${note.subject === 'python' ? 'bg-yellow-400' : 'bg-blue-500'}`}></div>
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{note.subject}</span>
-                                                <h3 className="font-bold text-slate-800">{note.title}</h3>
-                                            </div>
-                                            <button onClick={() => deleteNote(note.id)} className="p-1 text-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><i className="lucide-trash-2 w-4 h-4"></i></button>
+                                {savedNotes.length > 0 ? savedNotes.map(note => (
+                                    <div key={note.id} className="p-5 bg-white rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+                                        <div className={`absolute top-0 left-0 w-1.5 h-full ${note.subject === 'python' ? 'bg-yellow-400' : 'bg-blue-600'}`}></div>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em]">{note.subject}</span>
+                                            <button onClick={async () => {
+                                                const { getFirestore, doc, deleteDoc, initializeApp } = window.FirebaseSDK;
+                                                await deleteDoc(doc(getFirestore(initializeApp(firebaseConfig)), 'artifacts', studyAppId, 'users', user.uid, 'notes', note.id));
+                                            }} className="text-slate-200 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"><i className="lucide-trash-2 w-4 h-4"></i></button>
                                         </div>
-                                        <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 italic">"{note.content}"</p>
-                                        <span className="text-[9px] text-slate-300 font-bold block">{new Date(note.createdAt).toLocaleDateString()} 저장됨</span>
+                                        <h3 className="font-black text-slate-800 text-sm">{note.title}</h3>
+                                        <div className="mt-3 p-3 bg-slate-50 rounded-xl">
+                                            <pre className="code-font text-[9px] text-slate-500 overflow-x-auto"><code>{note.examples?.[0]}</code></pre>
+                                        </div>
+                                        <p className="mt-2 text-[10px] text-slate-400 italic">Saved on {new Date(note.createdAt).toLocaleDateString()}</p>
                                     </div>
-                                )) : (
-                                    <div className="py-20 text-center text-slate-300 flex flex-col items-center gap-3">
-                                        <i className="lucide-inbox w-12 h-12 opacity-20"></i>
-                                        <p className="text-xs font-black uppercase tracking-widest">저장된 노트가 없습니다.</p>
-                                    </div>
-                                )}
+                                )) : <div className="py-20 text-center opacity-20"><i className="lucide-archive w-12 h-12 mx-auto mb-2"></i><p className="text-[10px] font-black uppercase">No saved data</p></div>}
+                            </div>
+                        )}
+
+                        {view === 'gemini' && (
+                            <div className="flex flex-col h-[70vh] animate-slide">
+                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1 mb-4">
+                                    {chatMessages.length === 0 && (
+                                        <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
+                                            <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-sky-400 rounded-[2rem] flex items-center justify-center text-white shadow-lg animate-bounce">
+                                                <i className="lucide-bot w-8 h-8"></i>
+                                            </div>
+                                            <h3 className="text-lg font-black text-slate-800">Gemini AI Tutor</h3>
+                                            <p className="text-xs text-slate-400 leading-relaxed">지금 배우고 있는 {activeSubject === 'python' ? '파이썬' : '플러터'}에 대해 무엇이든 물어보세요!</p>
+                                        </div>
+                                    )}
+                                    {chatMessages.map((msg, i) => (
+                                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[85%] p-4 rounded-3xl text-xs font-bold leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'}`}>
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {isTyping && (
+                                        <div className="flex justify-start">
+                                            <div className="bg-white border border-slate-100 p-4 rounded-3xl rounded-tl-none flex gap-1 items-center">
+                                                <div className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce"></div>
+                                                <div className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                                <div className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div ref={chatEndRef} />
+                                </div>
+                                <div className="relative mt-auto">
+                                    <input 
+                                        type="text" 
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && callGemini(userInput)}
+                                        placeholder="궁금한 명령어를 물어보세요..."
+                                        className="w-full pl-6 pr-14 py-4 bg-white rounded-2xl border border-slate-100 shadow-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    <button 
+                                        onClick={() => callGemini(userInput)}
+                                        className="absolute right-2 top-2 p-3 bg-indigo-600 text-white rounded-xl shadow-lg active:scale-90 transition-all"
+                                    >
+                                        <i className="lucide-send w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </main>
 
-                    {/* 하단 탭 바 (모바일 앱 느낌) */}
-                    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-20 bg-white/80 backdrop-blur-xl border-t border-slate-100 flex items-center justify-around px-6 z-50">
+                    {/* 하단 네비게이션 */}
+                    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-20 glass-nav flex items-center justify-around px-6 z-50">
                         <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1 transition-all ${view === 'home' ? 'text-indigo-600 scale-110' : 'text-slate-300'}`}>
                             <i className="lucide-home w-6 h-6"></i>
                             <span className="text-[9px] font-black uppercase tracking-tighter">Home</span>
                         </button>
                         <button onClick={() => setView('learn')} className={`flex flex-col items-center gap-1 transition-all ${view === 'learn' ? 'text-indigo-600 scale-110' : 'text-slate-300'}`}>
-                            <i className="lucide-graduation-cap w-6 h-6"></i>
+                            <i className="lucide-book-open w-6 h-6"></i>
                             <span className="text-[9px] font-black uppercase tracking-tighter">Learn</span>
                         </button>
+                        <button onClick={() => setView('gemini')} className={`flex flex-col items-center gap-1 transition-all ${view === 'gemini' ? 'text-indigo-600 scale-110' : 'text-slate-300'}`}>
+                            <div className="relative">
+                                <i className="lucide-sparkles w-6 h-6"></i>
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-tighter">Gemini</span>
+                        </button>
                         <button onClick={() => setView('notes')} className={`flex flex-col items-center gap-1 transition-all ${view === 'notes' ? 'text-indigo-600 scale-110' : 'text-slate-300'}`}>
-                            <i className="lucide-bookmark w-6 h-6"></i>
-                            <span className="text-[9px] font-black uppercase tracking-tighter">Notes</span>
+                            <i className="lucide-folder-heart w-6 h-6"></i>
+                            <span className="text-[9px] font-black uppercase tracking-tighter">Vault</span>
                         </button>
                     </nav>
 
-                    <footer className="p-8 text-center opacity-30">
-                        <p className="text-[10px] font-black tracking-[0.3em] text-slate-400">DEV STUDY PRO v1.0</p>
+                    <footer className="p-8 text-center opacity-20">
+                        <p className="text-[9px] font-black tracking-[0.4em] text-slate-400">ANGELAS DEV ECOSYSTEM v2.5</p>
                     </footer>
                 </div>
             );
